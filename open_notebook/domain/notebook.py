@@ -355,6 +355,7 @@ class Note(ObjectModel):
     title: Optional[str] = None
     note_type: Optional[Literal["human", "ai"]] = None
     content: Optional[str] = None
+    research_id: Optional[str] = None
 
     @field_validator("content")
     @classmethod

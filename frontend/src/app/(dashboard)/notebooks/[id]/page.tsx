@@ -7,6 +7,7 @@ import { NotebookHeader } from '../components/NotebookHeader'
 import { SourcesColumn } from '../components/SourcesColumn'
 import { NotesColumn } from '../components/NotesColumn'
 import { ChatColumn } from '../components/ChatColumn'
+import { DeepResearch } from '@/components/DeepResearch'
 import { useNotebook } from '@/lib/hooks/use-notebooks'
 import { useNotebookSources } from '@/lib/hooks/use-sources'
 import { useNotes } from '@/lib/hooks/use-notes'
@@ -49,6 +50,9 @@ export default function NotebookPage() {
 
   // Mobile tab state (Sources, Notes, or Chat)
   const [mobileActiveTab, setMobileActiveTab] = useState<'sources' | 'notes' | 'chat'>('chat')
+
+  // Deep research modal state
+  const [showDeepResearch, setShowDeepResearch] = useState(false)
 
   // Context selection state
   const [contextSelections, setContextSelections] = useState<ContextSelections>({
@@ -122,9 +126,31 @@ export default function NotebookPage() {
   return (
     <AppShell>
       <div className="flex flex-col flex-1 min-h-0">
-        <div className="flex-shrink-0 p-6 pb-0">
+        <div className="flex-shrink-0 p-6 pb-0 flex items-center justify-between">
           <NotebookHeader notebook={notebook} />
+          <button
+            onClick={() => setShowDeepResearch(true)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
+            Deep Research
+          </button>
         </div>
+
+        {showDeepResearch && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-background rounded-lg shadow-lg w-full max-w-2xl max-h-96 overflow-y-auto relative">
+              <button
+                onClick={() => setShowDeepResearch(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-2xl"
+              >
+                ×
+              </button>
+              <div className="p-6">
+                <DeepResearch notebookId={notebookId} />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 p-6 pt-6 overflow-x-auto flex flex-col">
           {/* Mobile: Tabbed interface - only render on mobile to avoid double-mounting */}

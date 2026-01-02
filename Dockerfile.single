@@ -74,12 +74,14 @@ COPY --from=builder /app/frontend/.next/standalone /app/frontend/
 COPY --from=builder /app/frontend/.next/static /app/frontend/.next/static
 COPY --from=builder /app/frontend/public /app/frontend/public
 
+RUN cd /app/frontend && npm pkg set scripts.start="node server.js"
+
 # Create directories for data persistence
 RUN mkdir -p /app/data /mydata
 
 # Copy and make executable the wait-for-api script
 COPY scripts/wait-for-api.sh /app/scripts/wait-for-api.sh
-RUN chmod +x /app/scripts/wait-for-api.sh
+RUN sed -i 's/\r$//' /app/scripts/wait-for-api.sh && chmod +x /app/scripts/wait-for-api.sh
 
 # Expose ports for Frontend and API
 EXPOSE 8502 5055

@@ -1,0 +1,15 @@
+services:
+  open_notebook:
+    build:
+      context: ..
+      dockerfile: Dockerfile.single
+    ports:
+      - "8502:8502"  # Web UI
+      - "5055:5055"  # API (required!)
+    env_file:
+      - ./docker.env
+    pull_policy: always
+    volumes:
+      - ./notebook_data:/app/data
+      - ./surreal_single_data:/mydata
+    restart: always
