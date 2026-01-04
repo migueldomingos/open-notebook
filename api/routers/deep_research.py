@@ -42,7 +42,6 @@ research_results = {}
 
 def get_workflow(model_id: str = None):
     """Dependency to get the workflow instance"""
-    from open_notebook.database.client import db_client
     from open_notebook.domain.models import model_manager
     import asyncio
     
@@ -69,7 +68,10 @@ def get_workflow(model_id: str = None):
             if not embedding_model:
                 raise ValueError("No embedding model configured")
             
-            return TreeOfThoughtsResearch(llm=llm, embeddings=embedding_model, db=db_client)
+            # Convert Esperanto model to LangChain model for compatibility
+            langchain_llm = llm.to_langchain()
+            
+            return TreeOfThoughtsResearch(llm=langchain_llm, embeddings=embedding_model)
         except Exception as e:
             logger.error(f"Failed to initialize workflow: {e}")
             raise
@@ -87,10 +89,22 @@ def get_workflow(model_id: str = None):
 async def get_available_models():
     """Get all available language models for deep research"""
     try:
-        from open_notebook.domain.models import Model
+        from open_notebook.domain.models import Model, model_manager
         
         # Get all language models
         models = await Model.get_models_by_type("language")
+        
+        # Get the default model ID
+        default_model_id = None
+        try:
+            defaults = await model_manager.get_defaults()
+            if defaults.default_chat_model:
+                default_model_id = defaults.default_chat_model
+            elif models:
+                default_model_id = models[0].id
+        except Exception:
+            if models:
+                default_model_id = models[0].id
         
         return {
             'models': [
@@ -100,7 +114,8 @@ async def get_available_models():
                     'provider': model.provider
                 }
                 for model in models
-            ]
+            ],
+            'default_model_id': default_model_id
         }
     except Exception as e:
         logger.error(f"Error fetching available models: {e}")

@@ -47,7 +47,9 @@ export const DeepResearch: React.FC<{ notebookId?: string }> = ({ notebookId }) 
         if (response.ok) {
           const data = await response.json();
           setAvailableModels(data.models);
-          if (data.models.length > 0) {
+          if (data.default_model_id) {
+            setModelId(data.default_model_id);
+          } else if (data.models.length > 0) {
             setModelId(data.models[0].id);
           }
         }
