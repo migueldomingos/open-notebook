@@ -564,6 +564,7 @@ Forneça APENAS JSON com:
         try:
             result = await self.graph.ainvoke(initial_state)
             return {
+                'query': query,
                 'synthesis': result['synthesis'],
                 'confidence_score': result['confidence_score'],
                 'thought_tree': result['thought_tree'],
@@ -577,6 +578,7 @@ Forneça APENAS JSON com:
             logger.error(f"Research failed: {e}")
             logger.error(f"Full traceback: {traceback.format_exc()}")
             return {
+                'query': query,
                 'synthesis': f"Research failed: {str(e)}",
                 'confidence_score': 0.0,
                 'thought_tree': [],
