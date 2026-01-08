@@ -14,7 +14,7 @@ class ModelsService:
     """Service layer for models operations using API."""
     
     def __init__(self):
-        logger.info("Using API for models operations")
+        logger.info("🤖 Using API for models operations")
     
     def get_all_models(self, model_type: Optional[str] = None) -> List[Model]:
         """Get all models with optional type filtering."""

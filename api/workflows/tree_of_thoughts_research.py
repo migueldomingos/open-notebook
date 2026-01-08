@@ -68,7 +68,7 @@ class TreeOfThoughtsResearch:
     
     async def generate_initial_thoughts(self, state: ToTResearchState) -> ToTResearchState:
         """Generate initial hypothesis branches using Tree-of-Thoughts"""
-        logger.info(f"Generating initial thoughts for query: {state['query']}")
+        logger.info(f"💡 Generating initial thoughts for query: {state['query']}")
         
         prompt = f"""Gere 5 hipóteses diversas e testáveis para investigar a pergunta: "{state['query']}"
 
@@ -119,9 +119,9 @@ Retorne apenas o JSON, sem explicações adicionais."""
             ]
             state['active_branches'] = [f"branch_{i}" for i in range(len(state['thought_tree']))]
             state['iteration_count'] = 0
-            logger.info(f"Generated {len(state['thought_tree'])} initial hypotheses")
+            logger.info(f"✅ Generated {len(state['thought_tree'])} initial hypotheses")
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Failed to parse hypotheses: {e}")
+            logger.error(f"❌ Failed to parse hypotheses: {e}")
             logger.error(f"Response was: {response_text if 'response_text' in locals() else 'No response'}")
             # Fallback to default hypotheses
             state['thought_tree'] = [
@@ -146,7 +146,7 @@ Retorne apenas o JSON, sem explicações adicionais."""
     
     async def expand_all_branches(self, state: ToTResearchState) -> ToTResearchState:
         """Expand all active branches in parallel"""
-        logger.info(f"Expanding {len(state['active_branches'])} branches at iteration {state['iteration_count']}")
+        logger.info(f"🌲 Expanding {len(state['active_branches'])} branches at iteration {state['iteration_count']}")
         
         tasks = []
         for branch_id in state['active_branches']:
@@ -170,7 +170,7 @@ Retorne apenas o JSON, sem explicações adicionais."""
         if branch['depth'] >= state['max_depth']:
             return branch
         
-        logger.info(f"Expanding branch {branch['id']}: {branch['hypothesis'][:50]}...")
+        logger.info(f"🌳 Expanding branch {branch['id']}: {branch['hypothesis'][:50]}...")
         
         try:
             # STEP 1: REASONING - What evidence would support/refute this?
@@ -201,7 +201,7 @@ Retorne APENAS como JSON, sem explicações:
                 search_queries = [branch['hypothesis']]
             
             # STEP 2: ACTING - Search for evidence
-            logger.info(f"Searching for evidence with {len(search_queries)} queries")
+            logger.info(f"🔍 Searching for evidence with {len(search_queries)} queries")
             new_sources = await self._multi_query_search(search_queries)
             branch['sources_analyzed'] += len(new_sources)
             
@@ -288,10 +288,10 @@ Retorne APENAS como JSON:
             else:
                 branch['status'] = "exploring"
             
-            logger.info(f"Branch {branch['id']} updated: confidence={branch['confidence']:.2f}, status={branch['status']}")
+            logger.info(f"✅ Branch {branch['id']} updated: confidence={branch['confidence']:.2f}, status={branch['status']}")
             
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Error expanding branch {branch['id']}: {e}")
+            logger.error(f"❌ Error expanding branch {branch['id']}: {e}")
             branch['status'] = "error"
             branch['confidence'] = 0.3
         except Exception as e:
@@ -302,7 +302,7 @@ Retorne APENAS como JSON:
     
     async def evaluate_all_branches(self, state: ToTResearchState) -> ToTResearchState:
         """Evaluate and compare all branches"""
-        logger.info("Evaluating all branches")
+        logger.info("⚖️  Evaluating all branches")
         
         # Build branches data outside f-string to avoid brace conflicts
         branches_data = json.dumps([
@@ -335,7 +335,7 @@ Retorne APENAS como JSON com análise comparativa."""
             
             state['evaluation'] = json.loads(evaluation_text)
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Error evaluating branches: {e}")
+            logger.error(f"❌ Error evaluating branches: {e}")
             state['evaluation'] = {"analysis": "Evaluation in progress"}
         except Exception as e:
             logger.exception(f"Unexpected error evaluating branches: {e}")
@@ -345,14 +345,14 @@ Retorne APENAS como JSON com análise comparativa."""
     
     async def prune_weak_branches(self, state: ToTResearchState) -> ToTResearchState:
         """Remove branches that are unlikely to yield useful insights"""
-        logger.info("Pruning weak branches")
+        logger.info("✂️  Pruning weak branches")
         
         state['active_branches'] = [
             b['id'] for b in state['thought_tree']
             if b['status'] not in ['rejected', 'error'] and b['depth'] < state['max_depth']
         ]
         
-        logger.info(f"Active branches remaining: {len(state['active_branches'])}")
+        logger.info(f"✅ Active branches remaining: {len(state['active_branches'])}")
         return state
     
     def should_continue_exploring(self, state: ToTResearchState) -> str:
@@ -371,7 +371,7 @@ Retorne APENAS como JSON com análise comparativa."""
     
     async def synthesize_best_path(self, state: ToTResearchState) -> ToTResearchState:
         """Synthesize findings from best-supported branches"""
-        logger.info("Synthesizing research findings")
+        logger.info("🎨 Synthesizing research findings")
         
         # Rank branches by confidence
         ranked_branches = sorted(
@@ -412,16 +412,16 @@ Forneça uma resposta coerente e bem fundamentada adequada para um caderno de pe
         try:
             synthesis = await self.llm.ainvoke([HumanMessage(content=synthesis_prompt)])
             state['synthesis'] = synthesis.content
-            logger.info("Synthesis completed")
+            logger.info("✅ Synthesis completed")
         except Exception as e:
-            logger.error(f"Error synthesizing: {e}")
+            logger.error(f"❌ Error synthesizing: {e}")
             state['synthesis'] = f"Synthesis generated from {len(state['thought_tree'])} explored branches with top confidence: {max((b['confidence'] for b in state['thought_tree']), default=0):.1%}"
         
         return state
     
     async def assess_confidence(self, state: ToTResearchState) -> ToTResearchState:
         """Assess overall confidence in findings"""
-        logger.info("Assessing research confidence")
+        logger.info("🏆 Assessing research confidence")
         
         # Calculate metrics
         total_branches = len(state['thought_tree'])
@@ -461,7 +461,7 @@ Forneça APENAS JSON com:
             state['confidence_score'] = confidence_data.get('overall_confidence', 50) / 100.0
             state['confidence_data'] = confidence_data
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Error assessing confidence: {e}")
+            logger.error(f"❌ Error assessing confidence: {e}")
             # Calculate confidence from branch metrics
             state['confidence_score'] = min(0.95, avg_confidence * 0.7 + (promising_branches / max(total_branches, 1)) * 0.3)
             state['confidence_data'] = {
@@ -474,7 +474,7 @@ Forneça APENAS JSON com:
             state['confidence_data'] = {'overall_confidence': 50, 'reasoning': 'Assessment in progress'}
         
         state['status'] = "completed"
-        logger.info(f"Research completed with confidence score: {state['confidence_score']:.2f}")
+        logger.info(f"✅ Research completed with confidence score: {state['confidence_score']:.2f}")
         return state
     
     async def _multi_query_search(self, queries: List[str]) -> List[Document]:
@@ -546,7 +546,7 @@ Forneça APENAS JSON com:
     
     async def run(self, query: str, research_id: str = None, max_depth: int = 3, model_id: str = None):
         """Execute the Tree-of-Thoughts research workflow"""
-        logger.info(f"Starting ToT research for query: {query} with model_id: {model_id}")
+        logger.info(f"🚀 Starting ToT research for query: {query} with model_id: {model_id}")
         
         initial_state = ToTResearchState(
             query=query,
@@ -575,7 +575,7 @@ Forneça APENAS JSON com:
             }
         except Exception as e:
             import traceback
-            logger.error(f"Research failed: {e}")
+            logger.error(f"❌ Research failed: {e}")
             logger.error(f"Full traceback: {traceback.format_exc()}")
             return {
                 'query': query,

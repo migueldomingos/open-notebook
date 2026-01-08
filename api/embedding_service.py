@@ -13,7 +13,7 @@ class EmbeddingService:
     """Service layer for embedding operations using API."""
 
     def __init__(self):
-        logger.info("Using API for embedding operations")
+        logger.info("🧬 Using API for embedding operations")
 
     def embed_content(self, item_id: str, item_type: str) -> Union[Dict[Any, Any], List[Dict[Any, Any]]]:
         """Embed content for vector search."""

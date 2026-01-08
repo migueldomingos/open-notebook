@@ -13,7 +13,7 @@ class SearchService:
     """Service layer for search operations using API."""
 
     def __init__(self):
-        logger.info("Using API for search operations")
+        logger.info("🔍 Using API for search operations")
 
     def search(
         self,
